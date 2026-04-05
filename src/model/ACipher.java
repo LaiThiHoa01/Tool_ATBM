@@ -2,7 +2,7 @@ package model;
 
 public abstract class ACipher {
 	protected final String VN_LOWER = "aàáảãạăằắẳẵặâầấẩẫậbcdđeèéẻẽẹêềếểễệghiìíỉĩịklmnoòóỏõọôồốổỗộơờớởỡợpqrstuùúủũụưừứửữựvxyỳýỷỹỵ0123456789";
-    protected final String ENG_LOWER = "abcdefghijklmnopqrstuvwxyz0123456789";
+    protected final String ENG_LOWER = "abcdefghijklmnopqrstuvwxyz";
     
     protected String getLowerAlphabet(boolean isVN) {
     	return isVN? VN_LOWER: ENG_LOWER;

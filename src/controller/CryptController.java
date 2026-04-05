@@ -7,10 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import View.View;
-import model.ACipher;
-import model.Affine;
-import model.Caesar;
-import model.Substitution;
+import model.*;
 
 public class CryptController {
 	View view;
@@ -36,7 +33,8 @@ public class CryptController {
 			return new Substitution();
 		case "Affine":
 			return new Affine();
-		
+        case "Hill":
+            return new Hill();
 		default:
 			return null;
 		}
