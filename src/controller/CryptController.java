@@ -7,7 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import View.View;
-import model.*;
+import model.classical.*;
 
 public class CryptController {
 	View view;
@@ -35,6 +35,8 @@ public class CryptController {
 			return new Affine();
         case "Hill":
             return new Hill();
+        case "Vigenere":
+            return new Vigenere();
 		default:
 			return null;
 		}
@@ -57,7 +59,7 @@ public class CryptController {
 			else 
 				view.showMessage("Lỗi");
 		} catch (NumberFormatException e) {
-			view.showMessage("Khoá Caesar là số nguyên");
+			view.showMessage("Khoá không hợp lệ!");
 		} catch (Exception e) {
 			// TODO: handle exception
 			view.showMessage("Lỗi");

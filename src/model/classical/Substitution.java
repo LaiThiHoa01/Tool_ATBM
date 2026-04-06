@@ -1,4 +1,4 @@
-package model;
+package model.classical;
 
 import java.util.ArrayList;
 import java.util.Collections;

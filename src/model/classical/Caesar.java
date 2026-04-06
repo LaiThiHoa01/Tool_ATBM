@@ -1,4 +1,4 @@
-package model;
+package model.classical;
 
 import java.util.Random;
 
@@ -22,21 +22,6 @@ public class Caesar extends ACipher{
 				result.append(c);
 			
 		}
-//		int keyy = Integer.parseInt(key);
-//		String lower = getLowerAlphabet(isVN);
-//		String uppper = getUpperAlphabet(isVN);
-//		int total = lower.length();
-//		keyy =(keyy%total + total)%total;
-//		StringBuilder result = new StringBuilder();
-//		for (char kitu : text.toCharArray()) {
-//			int pos;
-//			if((pos = lower.indexOf(kitu))!= -1)
-//				result.append(lower.charAt((pos + keyy)%total));
-//			else if((pos = uppper.indexOf(kitu))!=-1)
-//				result.append(uppper.charAt((pos+keyy)%total));
-//			else
-//				result.append(kitu);
-//		}
 		return result.toString();
 	
 	}

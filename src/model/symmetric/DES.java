@@ -1,4 +1,4 @@
-package model;
+package model.symmetric;
 
 import javax.crypto.*;
 import java.nio.charset.StandardCharsets;
