@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact name="Tool:jar">
+    <output-path>$PROJECT_DIR$/classes/artifacts/Tool_jar</output-path>
+    <root id="root">
+      <element id="archive" name="Tool.jar">
+        <element id="module-output" name="Tool" />
+      </element>
+      <element id="library" level="project" name="bcprov-jdk18on-1.83" />
+    </root>
+  </artifact>
+</component>

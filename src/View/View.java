@@ -63,6 +63,10 @@ public class View extends JFrame {
     public SymmetricView getSymmetricPanel() {
         return symmetricPanel;
     }
+    public Asymmetric getAsymmetricPanel() {
+        return asymmetricPanel;
+    }
+    public Hash getHash() {return hash;}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -70,4 +74,5 @@ public class View extends JFrame {
             view.setVisible(true);
         });
     }
+
 }

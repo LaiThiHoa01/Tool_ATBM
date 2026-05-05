@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: Tool
+Class-Path: bcprov-jdk18on-1.83.jar
+

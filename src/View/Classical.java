@@ -71,6 +71,7 @@ public class Classical extends JPanel {
         JPanel input = new JPanel(new BorderLayout(0, 5));
         JLabel lbInput = new JLabel("Dữ liệu ");
         textInput = new JTextArea();
+        textInput.setMargin(new Insets(10, 10, 10, 10));
         textInput.setLineWrap(true);
         textInput.setWrapStyleWord(true);
         JPanel panelBtnIn = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -81,6 +82,7 @@ public class Classical extends JPanel {
         JPanel output = new JPanel(new BorderLayout(0, 5));
         JLabel lbOutput = new JLabel("Kết quả");
         textOutput = new JTextArea();
+        textOutput.setMargin(new Insets(10, 10, 10, 10));
         textOutput.setEditable(false);
         textOutput.setLineWrap(true);
         textOutput.setWrapStyleWord(true);
@@ -127,9 +129,7 @@ public class Classical extends JPanel {
     public void setOutputText(String text) { textOutput.setText(text); }
     public void setKey(String text) { key.setText(text); }
 
-    public void showMessage(String message) {
-        JOptionPane.showConfirmDialog(this, message, "Thông báo", JOptionPane.ERROR_MESSAGE);
-    }
+    public void showMessage(String msg) { JOptionPane.showMessageDialog(this, msg); }
 
     public void addGenKey(ActionListener actionListener) { btnCreatKey.addActionListener(actionListener); }
     public void addbtnEncrypt(ActionListener actionListener) { btnEncrypt.addActionListener(actionListener); }

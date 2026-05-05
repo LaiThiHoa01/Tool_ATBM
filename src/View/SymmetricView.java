@@ -9,7 +9,7 @@ public class SymmetricView extends JPanel {
     private JComboBox<String> cbMethodsSymmetric, cbModes, cbPadding1, cbLenghtKey1;
     private JTextField keySymmetric;
     private JTextArea textInputFileSymmetric, textOutputSymmetric, textInputSymmetricText;
-    private JButton creatKeySymmetric, btnInputKeySymmetric, btnOutputKeySymmetric, btnFileInputSymmetric, btnEncryptSymmetric, btnDecryptSymmetric;
+    private JButton creatKeySymmetric, btnInputKeySymmetric, btnOutputKeySymmetric, btnFileInputSymmetric, btnEncryptSymmetric, btnDecryptSymmetric, btnDeleteKey, btnCopyKey;
     private JTabbedPane tabFileOrText;
     private String selectedFilePath = "";
     private JScrollPane scrollOutput;
@@ -27,11 +27,23 @@ public class SymmetricView extends JPanel {
         JPanel panelTop = new JPanel(new GridLayout(5, 2, 15, 5));
         panelTop.setOpaque(false);
 
-        cbMethodsSymmetric = new JComboBox<>(new String[]{"AES", "DES", "DESede"});
+        cbMethodsSymmetric = new JComboBox<>(new String[]{"AES", "DES", "DESede","Serpent","Camellia"});
         cbModes = new JComboBox<>(new String[]{"CBC", "ECB", "CFB", "OFB", "CTR"});
         cbPadding1 = new JComboBox<>(new String[]{"PKCS5Padding", "NoPadding"});
         cbLenghtKey1 = new JComboBox<>();
-        keySymmetric = new JTextField();
+        keySymmetric = new JTextField(30);
+        JPanel pnGroupKey = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        btnDeleteKey = new JButton("Xoá khoá");
+        btnCopyKey = new JButton("Sao chép");
+        pnGroupKey.add(btnDeleteKey);
+        pnGroupKey.add(btnCopyKey);
+        styleButton(btnDeleteKey);
+        styleButton(btnCopyKey);
+        JPanel pnKey = new JPanel(new BorderLayout(5, 0));
+        pnKey.add(keySymmetric, BorderLayout.CENTER);
+        pnKey.add(pnGroupKey, BorderLayout.EAST);
+
+
 
         creatKeySymmetric = new JButton("Tạo khoá");
         btnInputKeySymmetric = new JButton("Tải khoá");
@@ -51,13 +63,18 @@ public class SymmetricView extends JPanel {
         panelTop.add(new JLabel("Chế độ (Mode):")); panelTop.add(cbModes);
         panelTop.add(new JLabel("Kiểu đệm (Padding):")); panelTop.add(cbPadding1);
         panelTop.add(new JLabel("Độ dài khóa:")); panelTop.add(panelKeyActions);
-        panelTop.add(new JLabel("Khóa (Base64):")); panelTop.add(keySymmetric);
+        panelTop.add(new JLabel("Khóa (Base64):")); panelTop.add(pnKey);
 
         JPanel panelCenter = new JPanel(new GridLayout(1, 2, 20, 0));
         panelCenter.setOpaque(false);
 
+        JPanel panelRightWrapper = new JPanel(new BorderLayout());
+        panelRightWrapper.setOpaque(false);
+        panelRightWrapper.setBorder(BorderFactory.createEmptyBorder(32, 0, 12, 0));
+
         tabFileOrText = new JTabbedPane();
         textInputSymmetricText = new JTextArea();
+        textInputSymmetricText.setMargin(new Insets(10, 10, 10, 10));
         JPanel pnFile = new JPanel(new BorderLayout(0, 15));
         pnFile.setOpaque(false);
         pnFile.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -84,11 +101,14 @@ public class SymmetricView extends JPanel {
         tabFileOrText.addTab("Văn bản", new JScrollPane(textInputSymmetricText));
         tabFileOrText.addTab("File", pnFile);
         textOutputSymmetric = new JTextArea();
+        textOutputSymmetric.setMargin(new Insets(10, 10, 10, 10));
         textOutputSymmetric.setEditable(false);
         scrollOutput = new JScrollPane(textOutputSymmetric);
+        panelRightWrapper.add(scrollOutput, BorderLayout.CENTER);
+
 
         panelCenter.add(tabFileOrText);
-        panelCenter.add(scrollOutput);
+        panelCenter.add(panelRightWrapper);
 
         JPanel panelBottom = new JPanel(new FlowLayout(FlowLayout.CENTER));
         panelBottom.setOpaque(false);
@@ -128,8 +148,8 @@ public class SymmetricView extends JPanel {
     public void setSymmetricOutputText(String text) { textOutputSymmetric.setText(text); }
     public int getSymmetricSelectedTab() { return tabFileOrText.getSelectedIndex(); }
     public String getSelectedFilePath() { return selectedFilePath; }
-    public void setTextAreaOutputFile(boolean isVisible) {
-        scrollOutput.setVisible(isVisible);
+    public void setTextAreaOutputFile(String text) { textOutputSymmetric.setText(text);
+//        scrollOutput.setVisible(isVisible);
     }
     public void setSelectedFilePath(String path) {
         this.selectedFilePath = path;
@@ -150,5 +170,10 @@ public class SymmetricView extends JPanel {
     public void addBtnEncrypt(ActionListener l) { btnEncryptSymmetric.addActionListener(l); }
     public void addBtnDecrypt(ActionListener l) { btnDecryptSymmetric.addActionListener(l); }
     public void addBtnChooseFile(ActionListener l) { btnFileInputSymmetric.addActionListener(l); }
-    public void addTabChangeListener(javax.swing.event.ChangeListener  l) { tabFileOrText.addChangeListener(l); }
+    public void addBtnDeleteKey(ActionListener l){
+        btnDeleteKey.addActionListener(l);
+    }
+    public void addBtnCopyKey(ActionListener l){
+        btnCopyKey.addActionListener(l);
+    }
 }

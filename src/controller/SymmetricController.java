@@ -6,6 +6,8 @@ import model.symmetric.Symmetric;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -27,13 +29,16 @@ public class SymmetricController {
         symmetricView.addBtnEncrypt(new EncryptSymmetric());
         symmetricView.addBtnDecrypt(new DecryptSymmetric());
         symmetricView.addBtnChooseFile(new ChooseFileSymmetric());
-        symmetricView.addTabChangeListener(new TabChange());
+        symmetricView.addBtnDeleteKey(e -> symmetricView.setSymmetricKey(""));
+        symmetricView.addBtnCopyKey(new CopyKey());
+//        symmetricView.addTabChangeListener(new TabChange());
+
 
 
     }
     private void updateLenghtOptionKey(){
         String algorithm = symmetricView.getAlgorithm();
-        if(algorithm.equals("AES")){
+        if(algorithm.equals("AES")||algorithm.equals("Serpent")||algorithm.equals("Camellia")){
             symmetricView.updateKeyLengthOptions(new String[]{"128", "192", "256"});
         }
         else if(algorithm.equals("DES")){
@@ -43,20 +48,34 @@ public class SymmetricController {
             symmetricView.updateKeyLengthOptions(new String[]{"112", "168"});
         }
     }
-    public class TabChange implements javax.swing.event.ChangeListener {
+    public class CopyKey implements ActionListener {
         @Override
-        public void stateChanged(javax.swing.event.ChangeEvent e) {
-            int selectTab = symmetricView.getSymmetricSelectedTab();
-            if(selectTab == 1){
-                symmetricView.setTextAreaOutputFile(false);
+        public void actionPerformed(ActionEvent e) {
+            String copyKey = symmetricView.getSymmetricKey();
+            if (copyKey == null || copyKey.trim().isEmpty()) {
+                symmetricView.showMessage("Không có khoá để sao chép");
+                return;
             }
-            else if(selectTab == 0){
-                symmetricView.setTextAreaOutputFile(true);
-            }
+            StringSelection selection = new StringSelection(copyKey);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, null);
+            symmetricView.showMessage("Đã sao chép khoá thành công!");
         }
-
-
     }
+//    public class TabChange implements javax.swing.event.ChangeListener {
+//        @Override
+//        public void stateChanged(javax.swing.event.ChangeEvent e) {
+//            int selectTab = symmetricView.getSymmetricSelectedTab();
+//            if(selectTab == 1){
+//                symmetricView.setTextAreaOutputFile(false);
+//            }
+//            else if(selectTab == 0){
+//                symmetricView.setTextAreaOutputFile(true);
+//            }
+//        }
+//
+//
+//    }
 
     private void syncModel() {
         symmetricModel.updateConfig(symmetricView.getAlgorithm(), symmetricView.getMode(), symmetricView.getPadding());
@@ -105,9 +124,14 @@ public class SymmetricController {
                 symmetricView.showMessage("Không có khoá để lưu!");
                 return;
             }
-            JFileChooser chooser = new JFileChooser();
-            if(chooser.showSaveDialog(symmetricView) == JFileChooser.APPROVE_OPTION){
-                try (FileWriter writer = new FileWriter(chooser.getSelectedFile())) {
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(symmetricView);
+            FileDialog fd = new FileDialog(frame, "Lưu file khoá", FileDialog.SAVE);
+            fd.setVisible(true);
+            String filename = fd.getFile();
+            String directory = fd.getDirectory();
+            if (filename != null) {
+                File file = new File(directory, filename);
+                try (FileWriter writer = new FileWriter(file)) {
                     writer.write(key);
                     symmetricView.showMessage("Đã lưu khóa thành công!");
                 } catch (IOException ex) {
@@ -128,6 +152,7 @@ public class SymmetricController {
                     String src = symmetricView.getSelectedFilePath();
                     symmetricModel.encryptFile(src, src + ".enc");
                     symmetricView.showMessage("Mã hoá file thành công: " + src + ".enc");
+                    symmetricView.setTextAreaOutputFile("File mã hoá được lưu tại: " + src + ".enc");
                 }
             } catch (Exception ex) {
                 symmetricView.showMessage("Lỗi mã hoá: " + ex.getMessage());
@@ -147,6 +172,7 @@ public class SymmetricController {
                     String dest = src.replace(".enc", "") ;
                     symmetricModel.decryptFile(src, dest);
                     symmetricView.showMessage("Thành công! File: " + dest);
+                    symmetricView.setTextAreaOutputFile("File giải mã được lưu tại: " + dest);
                 }
             } catch (Exception ex) {
                 symmetricView.showMessage("Lỗi giải mã: " + ex.getMessage());

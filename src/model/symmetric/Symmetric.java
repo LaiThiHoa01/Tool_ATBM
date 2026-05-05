@@ -31,7 +31,7 @@ public class Symmetric {
         return algorithm + "/" + mode + "/" + padding;
     }
     public void genKey(int keySize) throws Exception {
-        KeyGenerator keyGen = KeyGenerator.getInstance(this.algorithm);
+        KeyGenerator keyGen = KeyGenerator.getInstance(this.algorithm,"BC");
         keyGen.init(keySize);
         this.key = keyGen.generateKey();
     }
@@ -43,7 +43,7 @@ public class Symmetric {
         return (key == null) ? "" : Base64.getEncoder().encodeToString(key.getEncoded());
     }
     public String encryptText(String plainText) throws Exception {
-        Cipher cipher = Cipher.getInstance(getTransformation());
+        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
         if(mode.equals("ECB")){
             cipher.init(Cipher.ENCRYPT_MODE, this.key);
             byte[] cipherText = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
@@ -65,10 +65,10 @@ public class Symmetric {
     }
     public String decryptText(String cipherText) throws Exception {
         byte[] combined = Base64.getDecoder().decode(cipherText);
-        Cipher cipher = Cipher.getInstance(getTransformation());
+        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
         if(mode.equals("ECB")){
             cipher.init(Cipher.DECRYPT_MODE, this.key);
-            return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)), StandardCharsets.UTF_8);
+            return new String(cipher.doFinal(combined), StandardCharsets.UTF_8);
         }
         else{
             int ivSize = cipher.getBlockSize();
@@ -82,7 +82,7 @@ public class Symmetric {
         }
     }
     public void encryptFile(String filePath, String  destFile) throws Exception {
-        Cipher cipher = Cipher.getInstance(getTransformation());
+        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
         try
             (FileInputStream fis = new FileInputStream(filePath);
             FileOutputStream  fos = new FileOutputStream(destFile)){
@@ -110,7 +110,7 @@ public class Symmetric {
     }
     public void decryptFile(String filePath, String  destFile) throws Exception {
 
-        Cipher cipher = Cipher.getInstance(getTransformation());
+        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
         try(FileInputStream fis = new FileInputStream(filePath)){
             if(!mode.equals("ECB")) {
                 byte[] iv =  new byte[cipher.getBlockSize()];
