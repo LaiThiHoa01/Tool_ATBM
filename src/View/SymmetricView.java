@@ -27,7 +27,7 @@ public class SymmetricView extends JPanel {
         JPanel panelTop = new JPanel(new GridLayout(5, 2, 15, 5));
         panelTop.setOpaque(false);
 
-        cbMethodsSymmetric = new JComboBox<>(new String[]{"AES", "DES", "DESede","Serpent","Camellia"});
+        cbMethodsSymmetric = new JComboBox<>(new String[]{"AES", "Blowfish", "Camellia", "ChaCha20", "DES", "DESede", "Serpent", "Twofish"});
         cbModes = new JComboBox<>(new String[]{"CBC", "ECB", "CFB", "OFB", "CTR"});
         cbPadding1 = new JComboBox<>(new String[]{"PKCS5Padding", "NoPadding"});
         cbLenghtKey1 = new JComboBox<>();

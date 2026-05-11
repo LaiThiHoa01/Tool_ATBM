@@ -10,10 +10,10 @@ public class View extends JFrame {
     private final Color btnColor = Color.decode("#f9bc60");
     private final Color btnTextColor = Color.decode("#001e1d");
 
-    private Classical classicalPanel;
+    private ClassicalView classicalPanel;
     private SymmetricView symmetricPanel;
-    private  Asymmetric asymmetricPanel;
-    private Hash hash;
+    private AsymmetricView asymmetricPanel;
+    private HashView hash;
 
 
     public View() {
@@ -41,10 +41,10 @@ public class View extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 
-        classicalPanel = new Classical();
+        classicalPanel = new ClassicalView();
         symmetricPanel = new SymmetricView();
-        asymmetricPanel = new Asymmetric();
-        hash = new Hash();
+        asymmetricPanel = new AsymmetricView();
+        hash = new HashView();
 
 
 
@@ -56,17 +56,17 @@ public class View extends JFrame {
         this.add(tabbedPane, BorderLayout.CENTER);
     }
 
-    public Classical getClassicalPanel() {
+    public ClassicalView getClassicalPanel() {
         return classicalPanel;
     }
 
     public SymmetricView getSymmetricPanel() {
         return symmetricPanel;
     }
-    public Asymmetric getAsymmetricPanel() {
+    public AsymmetricView getAsymmetricPanel() {
         return asymmetricPanel;
     }
-    public Hash getHash() {return hash;}
+    public HashView getHash() {return hash;}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

@@ -9,15 +9,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import javax.swing.*;
 
-import View.Asymmetric;
+import View.AsymmetricView;
 import View.View;
 import model.asymmetric.RSA;
 
 public class AsymmetricController {
-    private Asymmetric asymmetricView;
+    private AsymmetricView asymmetricView;
     private RSA rsaModel;
 
     public AsymmetricController(View mainView) {
