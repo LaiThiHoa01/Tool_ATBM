@@ -12,7 +12,7 @@ public class ClassicalView extends JPanel {
     private JRadioButton vn, eng;
     private ButtonGroup groupButton;
     private JTextArea textInput, textOutput;
-    private JButton btnEncrypt, btnDecrypt, btnCreatKey, btnCopyKey, btnDeleteKey;
+    private JButton btnEncrypt, btnDecrypt, btnCreatKey, btnCopyKey, btnDeleteKey, btnSaveFileOut;
 
     private final Color bgDark = Color.decode("#004643");
     private final Color btnColor = Color.decode("#f9bc60");
@@ -88,6 +88,9 @@ public class ClassicalView extends JPanel {
         textOutput.setLineWrap(true);
         textOutput.setWrapStyleWord(true);
         JPanel panelBtnOut = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        btnSaveFileOut = new JButton("Lưu file");
+        styleButton(btnSaveFileOut);
+        panelBtnOut.add(btnSaveFileOut);
         output.add(panelBtnOut, BorderLayout.SOUTH);
         output.add(lbOutput, BorderLayout.NORTH);
         output.add(new JScrollPane(textOutput), BorderLayout.CENTER);
@@ -141,4 +144,5 @@ public class ClassicalView extends JPanel {
     public void addbtnDecrypt(ActionListener actionListener) { btnDecrypt.addActionListener(actionListener); }
     public void addCopy(ActionListener actionListener) { btnCopyKey.addActionListener(actionListener); }
     public void addDeleteKey(ActionListener actionListener) { btnDeleteKey.addActionListener(actionListener); }
+    public void addBtnSaveFileOut(ActionListener actionListener) { btnSaveFileOut.addActionListener(actionListener); }
 }

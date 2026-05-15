@@ -3,7 +3,7 @@ package model.symmetric;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -16,12 +16,16 @@ public class Symmetric {
     private String mode;
     private String padding;
 
-    public Symmetric( String algorithm, String mode, String padding) {
+    public Symmetric(String algorithm, String mode, String padding) {
         this.algorithm = algorithm;
         this.mode = mode;
         this.padding = padding;
     }
+
     public void updateConfig(String algorithm, String mode, String padding) {
+        if (this.algorithm != null && !this.algorithm.equals(algorithm)) {
+            clearKey();
+        }
         this.algorithm = algorithm;
         this.mode = mode;
         this.padding = padding;
@@ -30,26 +34,33 @@ public class Symmetric {
     private String getTransformation() {
         return algorithm + "/" + mode + "/" + padding;
     }
+
+    private boolean requiresIv(Cipher cipher) {
+        return !mode.equals("ECB") && cipher.getBlockSize() > 0;
+    }
+
     public void genKey(int keySize) throws Exception {
-        KeyGenerator keyGen = KeyGenerator.getInstance(this.algorithm,"BC");
+        KeyGenerator keyGen = KeyGenerator.getInstance(this.algorithm, "BC");
         keyGen.init(keySize);
         this.key = keyGen.generateKey();
     }
+
     public void importKeyFromBase64(String base64Key) throws Exception {
         byte[] decodekey = Base64.getDecoder().decode(base64Key);
         this.key = new SecretKeySpec(decodekey, 0, decodekey.length, this.algorithm);
     }
+
     public String exportKeyToBase64() {
         return (key == null) ? "" : Base64.getEncoder().encodeToString(key.getEncoded());
     }
+
     public String encryptText(String plainText) throws Exception {
-        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
-        if(mode.equals("ECB")){
+        Cipher cipher = Cipher.getInstance(getTransformation(), "BC");
+        if (!requiresIv(cipher)) {
             cipher.init(Cipher.ENCRYPT_MODE, this.key);
             byte[] cipherText = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(cipherText);
-        }
-        else{
+        } else {
             byte[] iv = new byte[cipher.getBlockSize()];
             new SecureRandom().nextBytes(iv);
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
@@ -60,77 +71,74 @@ public class Symmetric {
             System.arraycopy(iv, 0, combined, 0, iv.length);
             System.arraycopy(cipherText, 0, combined, iv.length, cipherText.length);
             return Base64.getEncoder().encodeToString(combined);
-
         }
     }
+
     public String decryptText(String cipherText) throws Exception {
         byte[] combined = Base64.getDecoder().decode(cipherText);
-        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
-        if(mode.equals("ECB")){
+        Cipher cipher = Cipher.getInstance(getTransformation(), "BC");
+        if (!requiresIv(cipher)) {
             cipher.init(Cipher.DECRYPT_MODE, this.key);
             return new String(cipher.doFinal(combined), StandardCharsets.UTF_8);
-        }
-        else{
+        } else {
             int ivSize = cipher.getBlockSize();
+            if (combined.length < ivSize) {
+                throw new IllegalArgumentException("Dữ liệu mã hoá không hợp lệ");
+            }
             byte[] iv = new byte[ivSize];
             byte[] cipherBytes = new byte[combined.length - ivSize];
             System.arraycopy(combined, 0, iv, 0, ivSize);
             System.arraycopy(combined, ivSize, cipherBytes, 0, cipherBytes.length);
             cipher.init(Cipher.DECRYPT_MODE, this.key, new IvParameterSpec(iv));
             return new String(cipher.doFinal(cipherBytes), StandardCharsets.UTF_8);
-
         }
     }
-    public void encryptFile(String filePath, String  destFile) throws Exception {
-        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
-        try
-            (FileInputStream fis = new FileInputStream(filePath);
-            FileOutputStream  fos = new FileOutputStream(destFile)){
-                if(!mode.equals("ECB")) {
-                    byte[] iv =  new byte[cipher.getBlockSize()];
-                    new SecureRandom().nextBytes(iv);
-                    fos.write(iv);
-                    IvParameterSpec ivSpec = new IvParameterSpec(iv);
-                    cipher.init(Cipher.ENCRYPT_MODE, this.key, ivSpec);
-                }
-                else {
-                    cipher.init(Cipher.ENCRYPT_MODE, this.key);
-                }
-                try(CipherOutputStream cos = new CipherOutputStream(fos, cipher)){
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while((bytesRead = fis.read(buffer)) != -1) {
-                        cos.write(buffer, 0, bytesRead);
-                    }
-                }
 
-        }
-
-
-    }
-    public void decryptFile(String filePath, String  destFile) throws Exception {
-
-        Cipher cipher = Cipher.getInstance(getTransformation(),"BC");
-        try(FileInputStream fis = new FileInputStream(filePath)){
-            if(!mode.equals("ECB")) {
-                byte[] iv =  new byte[cipher.getBlockSize()];
-                fis.read(iv);
+    public void encryptFile(String filePath, String destFile) throws Exception {
+        Cipher cipher = Cipher.getInstance(getTransformation(), "BC");
+        try (FileInputStream fis = new FileInputStream(filePath);
+             FileOutputStream fos = new FileOutputStream(destFile)) {
+            if (requiresIv(cipher)) {
+                byte[] iv = new byte[cipher.getBlockSize()];
+                new SecureRandom().nextBytes(iv);
+                fos.write(iv);
                 IvParameterSpec ivSpec = new IvParameterSpec(iv);
-                cipher.init(Cipher.DECRYPT_MODE, this.key, ivSpec);
+                cipher.init(Cipher.ENCRYPT_MODE, this.key, ivSpec);
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, this.key);
             }
-            else {
-                cipher.init(Cipher.DECRYPT_MODE, this.key);
-            }
-            try(CipherInputStream cis = new CipherInputStream(fis, cipher);
-                FileOutputStream fos = new FileOutputStream(destFile)
-            ){
+            try (CipherOutputStream cos = new CipherOutputStream(fos, cipher)) {
                 byte[] buffer = new byte[1024];
                 int bytesRead;
-                while((bytesRead = cis.read(buffer)) != -1) {
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    cos.write(buffer, 0, bytesRead);
+                }
+            }
+        }
+    }
+
+    public void decryptFile(String filePath, String destFile) throws Exception {
+        Cipher cipher = Cipher.getInstance(getTransformation(), "BC");
+        try (DataInputStream fis = new DataInputStream(new FileInputStream(filePath))) {
+            if (requiresIv(cipher)) {
+                byte[] iv = new byte[cipher.getBlockSize()];
+                fis.readFully(iv);
+                IvParameterSpec ivSpec = new IvParameterSpec(iv);
+                cipher.init(Cipher.DECRYPT_MODE, this.key, ivSpec);
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, this.key);
+            }
+            try (CipherInputStream cis = new CipherInputStream(fis, cipher);
+                 FileOutputStream fos = new FileOutputStream(destFile)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = cis.read(buffer)) != -1) {
                     fos.write(buffer, 0, bytesRead);
                 }
             }
         }
     }
-
+    public void clearKey() {
+        this.key = null;
+    }
 }

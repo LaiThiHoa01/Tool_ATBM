@@ -4,9 +4,17 @@ import java.util.Random;
 
 public class Vigenere extends ACipher{
 
-	@Override
-	public String genKey(boolean isVN) {
-        String abc = getLowerAlphabet(isVN);
+    private int keyShift(char keyChar, boolean isVN) {
+        int shift = getFullAlphabet(isVN).indexOf(keyChar);
+        if (shift == -1) {
+            throw new IllegalArgumentException("Khoá chứa ký tự không thuộc bảng chữ cái đã chọn");
+        }
+        return shift;
+    }
+
+    @Override
+    public String genKey(boolean isVN) {
+        String abc = getFullAlphabet(isVN);
         StringBuilder key = new StringBuilder();
         int total  = abc.length();
         Random rd = new Random();
@@ -15,67 +23,63 @@ public class Vigenere extends ACipher{
             int randomKey = rd.nextInt(total);
             key.append(abc.charAt(randomKey));
         }
-		return key.toString();
-	}
+        return key.toString();
+    }
 
-	@Override
-	public String encrypt(String text, String key, boolean isVN) {
+    @Override
+    public String encrypt(String text, String key, boolean isVN) {
         if (text == null || text.isEmpty() || key == null || key.isEmpty()) {
             return "";
         }
-        String abc = getLowerAlphabet(isVN);
+        String abc = getFullAlphabet(isVN);
         int total = abc.length();
         StringBuilder result = new StringBuilder();
         int[] keys = new int[key.length()];
         for (int i = 0; i < keys.length; i++) {
-            keys[i] = abc.indexOf(Character.toLowerCase(key.charAt(i)));
+            keys[i] = keyShift(key.charAt(i), isVN);
         }
         int keyIndex =0;
         int keyLength = key.length();
         for( char c : text.toCharArray()){
-            boolean isUpper= Character.isUpperCase(c);
-            char lower = Character.toLowerCase(c);
-            int pos = abc.indexOf(lower);
+            int pos = abc.indexOf(c);
             if(pos != -1){
                 int shift = keys[keyIndex%keyLength];
                 int newPos = (pos+shift)%total;
                 char enChar = abc.charAt(newPos);
-                result.append(isUpper?Character.toUpperCase(enChar):enChar);
-                keyIndex++;
-            }else result.append(c);
-        }
-
-		return result.toString();
-	}
-
-	@Override
-	public String decrypt(String text, String key, boolean isVN) {
-        if (text == null || text.isEmpty() || key == null || key.isEmpty()) {
-            return "";
-        }
-        String abc = getLowerAlphabet(isVN);
-        int total = abc.length();
-        StringBuilder result = new StringBuilder();
-        int[] keys = new int[key.length()];
-        for (int i = 0; i < keys.length; i++) {
-            keys[i] = abc.indexOf(Character.toLowerCase(key.charAt(i)));
-        }
-        int keyIndex =0;
-        int keyLength = key.length();
-        for( char c : text.toCharArray()){
-            boolean isUpper= Character.isUpperCase(c);
-            char lower = Character.toLowerCase(c);
-            int pos = abc.indexOf(lower);
-            if(pos != -1){
-                int shift = keys[keyIndex%keyLength];
-                int newPos = (pos-shift+total)%total;
-                char enChar = abc.charAt(newPos);
-                result.append(isUpper?Character.toUpperCase(enChar):enChar);
+                result.append(enChar);
                 keyIndex++;
             }else result.append(c);
         }
 
         return result.toString();
-	}
+    }
+
+    @Override
+    public String decrypt(String text, String key, boolean isVN) {
+        if (text == null || text.isEmpty() || key == null || key.isEmpty()) {
+            return "";
+        }
+        String abc = getFullAlphabet(isVN);
+        int total = abc.length();
+        StringBuilder result = new StringBuilder();
+        int[] keys = new int[key.length()];
+        for (int i = 0; i < keys.length; i++) {
+            keys[i] = keyShift(key.charAt(i), isVN);
+        }
+        int keyIndex =0;
+        int keyLength = key.length();
+        for( char c : text.toCharArray()){
+            int pos = abc.indexOf(c);
+            if(pos != -1){
+                int shift = keys[keyIndex%keyLength];
+                int newPos = (pos-shift+total)%total;
+                char enChar = abc.charAt(newPos);
+                result.append(enChar);
+                keyIndex++;
+            }else result.append(c);
+        }
+
+        return result.toString();
+    }
 
 }

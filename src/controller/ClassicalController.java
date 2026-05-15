@@ -5,6 +5,10 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileWriter;
+import java.awt.FileDialog;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import View.View;
 import View.ClassicalView;
@@ -12,6 +16,7 @@ import model.classical.*;
 
 public class ClassicalController {
     private ClassicalView classicalView;
+    private String lastOutputText = "";
 
     public ClassicalController(View mainView) {
         this.classicalView = mainView.getClassicalPanel();
@@ -21,6 +26,7 @@ public class ClassicalController {
         this.classicalView.addbtnDecrypt(new Decrypt());
         this.classicalView.addCopy(new CopyKey());
         this.classicalView.addDeleteKey(new DeleteKey());
+        this.classicalView.addBtnSaveFileOut(new SaveFileOut());
     }
 
     private ACipher getAlgorithm(String method) {
@@ -55,6 +61,7 @@ public class ClassicalController {
             ACipher cipher = getAlgorithm(method);
             if (cipher != null) {
                 String result = isEncrypt ? cipher.encrypt(input, key, isVN) : cipher.decrypt(input, key, isVN);
+                lastOutputText = result;
                 classicalView.setOutputText(result);
             } else {
                 classicalView.showMessage("Lỗi: Không tìm thấy thuật toán");
@@ -115,6 +122,27 @@ public class ClassicalController {
         @Override
         public void actionPerformed(ActionEvent e) {
             classicalView.setKey("");
+        }
+    }
+
+    public class SaveFileOut implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (lastOutputText.isEmpty()) {
+                classicalView.showMessage("Không có dữ liệu để lưu!");
+                return;
+            }
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(classicalView);
+            FileDialog fd = new FileDialog(frame, "Lưu file", FileDialog.SAVE);
+            fd.setVisible(true);
+            if (fd.getFile() != null) {
+                try (FileWriter fw = new FileWriter(fd.getDirectory() + fd.getFile())) {
+                    fw.write(lastOutputText);
+                    classicalView.showMessage("Lưu file thành công!");
+                } catch (Exception ex) {
+                    classicalView.showMessage("Lỗi lưu file!");
+                }
+            }
         }
     }
 }

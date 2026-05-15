@@ -9,7 +9,7 @@ public class SymmetricView extends JPanel {
     private JComboBox<String> cbMethodsSymmetric, cbModes, cbPadding1, cbLenghtKey1;
     private JTextField keySymmetric;
     private JTextArea textInputFileSymmetric, textOutputSymmetric, textInputSymmetricText;
-    private JButton creatKeySymmetric, btnInputKeySymmetric, btnOutputKeySymmetric, btnFileInputSymmetric, btnEncryptSymmetric, btnDecryptSymmetric, btnDeleteKey, btnCopyKey;
+    private JButton creatKeySymmetric, btnInputKeySymmetric, btnOutputKeySymmetric, btnFileInputSymmetric, btnEncryptSymmetric, btnDecryptSymmetric, btnDeleteKey, btnCopyKey, btnSaveFileOut;
     private JTabbedPane tabFileOrText;
     private String selectedFilePath = "";
     private JScrollPane scrollOutput;
@@ -27,11 +27,12 @@ public class SymmetricView extends JPanel {
         JPanel panelTop = new JPanel(new GridLayout(5, 2, 15, 5));
         panelTop.setOpaque(false);
 
-        cbMethodsSymmetric = new JComboBox<>(new String[]{"AES", "Blowfish", "Camellia", "ChaCha20", "DES", "DESede", "Serpent", "Twofish"});
+        cbMethodsSymmetric = new JComboBox<>(new String[]{"AES","ARIA", "Blowfish", "Camellia", "CAST5","CAST6","DES", "DESede", "Serpent", "Twofish"});
         cbModes = new JComboBox<>(new String[]{"CBC", "ECB", "CFB", "OFB", "CTR"});
-        cbPadding1 = new JComboBox<>(new String[]{"PKCS5Padding", "NoPadding"});
+        cbPadding1 = new JComboBox<>(new String[]{"PKCS5Padding","PKCS7Padding", "NoPadding"});
         cbLenghtKey1 = new JComboBox<>();
         keySymmetric = new JTextField(30);
+        cbMethodsSymmetric.addActionListener(e -> keySymmetric.setText(""));
         JPanel pnGroupKey = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         btnDeleteKey = new JButton("Xoá khoá");
         btnCopyKey = new JButton("Sao chép");
@@ -106,6 +107,13 @@ public class SymmetricView extends JPanel {
         scrollOutput = new JScrollPane(textOutputSymmetric);
         panelRightWrapper.add(scrollOutput, BorderLayout.CENTER);
 
+        btnSaveFileOut = new JButton("Lưu file");
+        styleButton(btnSaveFileOut);
+        JPanel pnOutputBtn = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pnOutputBtn.setOpaque(false);
+        pnOutputBtn.add(btnSaveFileOut);
+        panelRightWrapper.add(pnOutputBtn, BorderLayout.SOUTH);
+
 
         panelCenter.add(tabFileOrText);
         panelCenter.add(panelRightWrapper);
@@ -148,9 +156,7 @@ public class SymmetricView extends JPanel {
     public void setSymmetricOutputText(String text) { textOutputSymmetric.setText(text); }
     public int getSymmetricSelectedTab() { return tabFileOrText.getSelectedIndex(); }
     public String getSelectedFilePath() { return selectedFilePath; }
-    public void setTextAreaOutputFile(String text) { textOutputSymmetric.setText(text);
-//        scrollOutput.setVisible(isVisible);
-    }
+    public void setTextAreaOutputFile(String text) { textOutputSymmetric.setText(text); }
     public void setSelectedFilePath(String path) {
         this.selectedFilePath = path;
         textInputFileSymmetric.setText(path);
@@ -176,4 +182,5 @@ public class SymmetricView extends JPanel {
     public void addBtnCopyKey(ActionListener l){
         btnCopyKey.addActionListener(l);
     }
+    public void addBtnSaveFileOut(ActionListener l) { btnSaveFileOut.addActionListener(l); }
 }

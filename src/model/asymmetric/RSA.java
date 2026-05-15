@@ -28,16 +28,19 @@ public class RSA {
     }
 
     public byte[] encrypt(String data) throws Exception {
+        if (publicKey == null) throw new IllegalStateException("Chưa tải Public Key!");
         Cipher cipher = Cipher.getInstance(padding);
-        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        byte in[] = data.getBytes(StandardCharsets.UTF_8);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return cipher.doFinal(dataBytes);
+        byte[] out = cipher.doFinal(in);
+        return out;
     }
 
     public String decrypt(String data) throws Exception {
+        if (privateKey == null) throw new IllegalStateException("Chưa tải Private Key!");
         Cipher cipher = Cipher.getInstance(padding);
-        byte[] dataBytes = Base64.getDecoder().decode(data);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] dataBytes = Base64.getDecoder().decode(data);
         byte[] out = cipher.doFinal(dataBytes);
         return new String(out, StandardCharsets.UTF_8);
     }
@@ -64,6 +67,14 @@ public class RSA {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         this.publicKey = keyFactory.generatePublic(spec);
     }
+    public void clearPublicKey() {
+        this.publicKey = null;
+    }
+
+    public void clearPrivateKey() {
+        this.privateKey = null;
+    }
+
 
     public void setPrivateKeyFromBase64(String base64Key) throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
@@ -130,6 +141,11 @@ public class RSA {
             }
             byte[] finalBytes = aesCipher.doFinal();
             if (finalBytes != null) fos.write(finalBytes);
+        }catch (AEADBadTagException e) {
+            File corruptedFile = new File(outputFile);
+            if (corruptedFile.exists()) corruptedFile.delete();
+            throw new Exception("Lỗi bảo mật: Dữ liệu đã bị sửa đổi (Mất tính toàn vẹn) hoặc sai khoá!");
         }
+
     }
 }

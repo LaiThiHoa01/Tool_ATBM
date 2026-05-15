@@ -13,7 +13,7 @@ public class Hill extends ACipher{
 
     @Override
     public String genKey(boolean isVN) {
-        int total = getLowerAlphabet(isVN).length();
+        int total = getFullAlphabet(isVN).length();
         Random random = new Random();
         while(true){
             int a  = random.nextInt(total);
@@ -31,52 +31,11 @@ public class Hill extends ACipher{
     public String encrypt(String text, String key, boolean isVN) {
         if(text == null || text.isEmpty())
             return "";
-        String abc = getLowerAlphabet(isVN);
-        int total = getLowerAlphabet(isVN).length();
         int[][] matrixKey = keyToMatrix(key);
-        int m = matrixKey.length;
-        StringBuilder alphabeticChars = new StringBuilder();
-        for (char c : text.toCharArray()) {
-            if(abc.indexOf(Character.toLowerCase(c))!=-1){
-                alphabeticChars.append(c);
-            }
+        if(invertMatrix2x2(matrixKey, getFullAlphabet(isVN).length()) == null){
+            throw new IllegalArgumentException("Khóa không hợp lệ, không tồn tại ma trận nghịch đảo.");
         }
-        while(alphabeticChars.length()%m != 0){
-            alphabeticChars.append(abc.charAt(0));
-        }
-        StringBuilder encryptedChars = new StringBuilder();
-        for(int i = 0; i < alphabeticChars.length(); i+= m){
-            int[] vector = new int[m];
-            boolean[] isUpper = new boolean[m];
-            for(int j = 0; j < m; j++){
-                char c = alphabeticChars.charAt(i+j);
-                isUpper[j] = Character.isUpperCase(c);
-                vector[j] = abc.indexOf(Character.toLowerCase(c));
-            }
-            int[] vector2 =mutiplyMatrix(matrixKey,vector,total);
-            for(int j = 0; j < m; j++){
-                char newChar = abc.charAt(vector2[j]);
-                if(isUpper[j]){
-                    encryptedChars.append(Character.toUpperCase(newChar));
-                }
-                else{
-                    encryptedChars.append(newChar);
-                }
-            }
-        }
-        StringBuilder result = new StringBuilder();
-        int index = 0;
-        for (char c: text.toCharArray()) {
-            if(abc.indexOf(Character.toLowerCase(c))!=-1){
-                result.append(encryptedChars.charAt(index));
-                index++;
-            }
-            else {
-                result.append(c);
-            }
-
-        }
-        return result.toString();
+        return transformText(text, matrixKey, getShift(matrixKey, getFullAlphabet(isVN).length()), isVN);
 
     }
 
@@ -84,64 +43,87 @@ public class Hill extends ACipher{
     public String decrypt(String text, String key, boolean isVN) {
         if(text == null || text.isEmpty())
             return "";
-        String abc = getLowerAlphabet(isVN);
-        int total = getLowerAlphabet(isVN).length();
         int[][] matrixKey = keyToMatrix(key);
-        int[][] invMatrix = invertMatrix2x2(matrixKey,total);
+        int[][] invMatrix = invertMatrix2x2(matrixKey,getFullAlphabet(isVN).length());
         if(invMatrix == null){
             throw new IllegalArgumentException("Khóa không hợp lệ, không tồn tại ma trận nghịch đảo.");
         }
-        int m = matrixKey.length;
-        StringBuilder alphabeticChars = new StringBuilder();
+        return transformText(text, invMatrix, -getShift(matrixKey, getFullAlphabet(isVN).length()), isVN);
+    }
+
+    private String transformText(String text, int[][] matrix, int singleCharShift, boolean isVN) {
+        String alphabet = getFullAlphabet(isVN);
+        StringBuilder chars = new StringBuilder();
         for (char c : text.toCharArray()) {
-            if(abc.indexOf(Character.toLowerCase(c))!=-1){
-                alphabeticChars.append(c);
+            if(alphabet.indexOf(c)!=-1){
+                chars.append(c);
             }
         }
-        while(alphabeticChars.length()%m != 0){
-            alphabeticChars.append(abc.charAt(0));
-        }
-        StringBuilder decryptedChars = new StringBuilder();
-        for(int i = 0; i < alphabeticChars.length(); i+= m){
-            int[] vector = new int[m];
-            boolean[] isUpper = new boolean[m];
-            for(int j = 0; j < m; j++){
-                char c = alphabeticChars.charAt(i+j);
-                isUpper[j] = Character.isUpperCase(c);
-                vector[j] = abc.indexOf(Character.toLowerCase(c));
-            }
-            int[] vector2 =mutiplyMatrix(invMatrix,vector,total);
-            for(int j = 0; j < m; j++){
-                char newChar = abc.charAt(vector2[j]);
-                if(isUpper[j]){
-                    decryptedChars.append(Character.toUpperCase(newChar));
-                }
-                else{
-                    decryptedChars.append(newChar);
-                }
-            }
-        }
+        String transformedChars = transformChars(chars.toString(), alphabet, matrix, singleCharShift);
+
         StringBuilder result = new StringBuilder();
         int index = 0;
         for (char c: text.toCharArray()) {
-            if(abc.indexOf(Character.toLowerCase(c))!=-1){
-                result.append(decryptedChars.charAt(index));
-                index++;
+            if(alphabet.indexOf(c)!=-1){
+                result.append(transformedChars.charAt(index++));
             }
             else {
                 result.append(c);
             }
-
         }
         return result.toString();
     }
+
+    private String transformChars(String text, String alphabet, int[][] matrix, int singleCharShift) {
+        if(text.isEmpty()){
+            return "";
+        }
+        int m = matrix.length;
+        int total = alphabet.length();
+        StringBuilder chars = new StringBuilder(text);
+        StringBuilder result = new StringBuilder();
+        int fullBlockLength = chars.length() - (chars.length() % m);
+        for(int i = 0; i < fullBlockLength; i+= m){
+            int[] vector = new int[m];
+            for(int j = 0; j < m; j++){
+                vector[j] = alphabet.indexOf(chars.charAt(i+j));
+            }
+            int[] vector2 =mutiplyMatrix(matrix,vector,total);
+            for(int j = 0; j < m; j++){
+                result.append(alphabet.charAt(vector2[j]));
+            }
+        }
+        for(int i = fullBlockLength; i < chars.length(); i++){
+            int pos = alphabet.indexOf(chars.charAt(i));
+            int newPos = pos + singleCharShift;
+            result.append(alphabet.charAt((newPos % total + total) % total));
+        }
+        return result.toString();
+    }
+
+    private int getShift(int[][] matrixKey, int total){
+        int shift = 0;
+        for (int[] row : matrixKey) {
+            for (int value : row) {
+                shift += value;
+            }
+        }
+        shift = shift % total;
+        return shift == 0 ? 1 : shift;
+    }
+
     private int[][] keyToMatrix(String key){
-        String[] parts = key.split(" ");
-        int m = (int) Math.sqrt(parts.length);
-        int[][] matrix = new int[m][m];
+        if (key == null || key.trim().isEmpty()) {
+            throw new IllegalArgumentException("Khóa Hill phải gồm 4 số.");
+        }
+        String[] parts = key.trim().split("\\s+");
+        if (parts.length != 4) {
+            throw new IllegalArgumentException("Khóa Hill phải gồm 4 số.");
+        }
+        int[][] matrix = new int[2][2];
         int k =0;
-        for(int i = 0; i<m; i++){
-            for(int j = 0; j<m; j++){
+        for(int i = 0; i<2; i++){
+            for(int j = 0; j<2; j++){
                 matrix[i][j] = Integer.parseInt(parts[k++].trim());
             }
         }

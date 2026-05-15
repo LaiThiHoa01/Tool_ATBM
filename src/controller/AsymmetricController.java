@@ -18,6 +18,8 @@ import model.asymmetric.RSA;
 public class AsymmetricController {
     private AsymmetricView asymmetricView;
     private RSA rsaModel;
+    private String lastOutputText = "";
+    private String lastOutputFilePath = "";
 
     public AsymmetricController(View mainView) {
         this.asymmetricView = mainView.getAsymmetricPanel();
@@ -33,7 +35,7 @@ public class AsymmetricController {
         this.asymmetricView.addBtnInputPubKey(new LoadPublicKey());
         this.asymmetricView.addBtnOutputPrivKey(new SavePrivateKey());
         this.asymmetricView.addBtnOutputPubKey(new SavePublicKey());
-
+        this.asymmetricView.addBtnSaveFileOut(new SaveFileOut());
     }
 
     private void updateModelConfig() {
@@ -46,8 +48,17 @@ public class AsymmetricController {
             String pubKeyStr = asymmetricView.getPublicKey();
             String privKeyStr = asymmetricView.getPrivateKey();
 
-            if (!pubKeyStr.isEmpty()) rsaModel.setPublicKeyFromBase64(pubKeyStr);
-            if (!privKeyStr.isEmpty()) rsaModel.setPrivateKeyFromBase64(privKeyStr);
+            if (!pubKeyStr.isEmpty()) {
+                rsaModel.setPublicKeyFromBase64(pubKeyStr);
+            } else {
+                rsaModel.clearPublicKey();
+            }
+
+            if (!privKeyStr.isEmpty()) {
+                rsaModel.setPrivateKeyFromBase64(privKeyStr);
+            } else {
+                rsaModel.clearPrivateKey();
+            }
 
         } catch (Exception e) {
             asymmetricView.showMessage("Lỗi nạp khóa: Key không hợp lệ hoặc sai định dạng.");
@@ -66,6 +77,7 @@ public class AsymmetricController {
                 }
 
                 String result = isEncrypt ? rsaModel.encryptBase64(input) : rsaModel.decrypt(input);
+                lastOutputText = result;
                 asymmetricView.setAsymmetricOutputText(result);
 
             } else {
@@ -77,22 +89,17 @@ public class AsymmetricController {
                 if (isEncrypt) {
                     String outputFilePath = inputFilePath + ".enc";
                     rsaModel.encryptFile(inputFilePath, outputFilePath);
+                    lastOutputFilePath = outputFilePath;
                     asymmetricView.setAsymmetricOutputText("Đã mã hóa thành công ra file:\n" + outputFilePath);
-                } else {
-                    String base = inputFilePath.replace(".enc", "");
-                    int dot = base.lastIndexOf(".");
-                    String outputFilePath = (dot == -1) ? base + "_decrypt" : base.substring(0, dot) + "_decrypt" + base.substring(dot);
-
-                    rsaModel.decryptFile(inputFilePath, outputFilePath);
-                    asymmetricView.setAsymmetricOutputText("Đã giải mã thành công ra file:\n" + outputFilePath);
                 }
             }
+        } catch (java.security.InvalidKeyException ex) {
+            asymmetricView.showMessage("Lỗi: Khóa không hợp lệ!\nVui lòng đảm bảo bạn đang sử dụng đúng Public Key để mã hoá.");
         } catch (Exception e) {
             asymmetricView.showMessage("Lỗi xử lý: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
 
     public class Encrypt implements ActionListener {
         @Override
@@ -104,7 +111,63 @@ public class AsymmetricController {
     public class Decrypt implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            process(false);
+            updateModelConfig();
+            int currentTab = asymmetricView.getAsymmetricSelectedTab();
+            try {
+                if (currentTab == 0) {
+                    String input = asymmetricView.getAsymmetricInputText();
+                    if (input == null || input.trim().isEmpty()) {
+                        asymmetricView.showMessage("Vui lòng nhập dữ liệu văn bản!");
+                        return;
+                    }
+
+                    String result = rsaModel.decrypt(input);
+                    lastOutputText = result;
+                    asymmetricView.setAsymmetricOutputText(result);
+
+                } else {
+                    String src = asymmetricView.getSelectedFilePath();
+                    if (src == null || src.trim().isEmpty()) {
+                        asymmetricView.showMessage("Vui lòng tải file để tiếp tục!");
+                        return;
+                    }
+
+                    String dest;
+                    if (src.endsWith(".enc")) {
+                        String originalName = src.replace(".enc", "");
+                        int dotIndex = originalName.lastIndexOf(".");
+                        if (dotIndex != -1) {
+                            dest = originalName.substring(0, dotIndex) + "_decrypted" + originalName.substring(dotIndex);
+                        } else {
+                            dest = originalName + "_decrypted";
+                        }
+                    } else {
+                        dest = src + "_decrypted.txt";
+                    }
+
+                    byte[] fileBytes = Files.readAllBytes(new File(src).toPath());
+                    String content = new String(fileBytes, java.nio.charset.StandardCharsets.UTF_8).trim();
+
+                    boolean isBase64Text = content.replaceAll("\\s+", "").matches("^[a-zA-Z0-9+/]*={0,2}$") && !content.isEmpty();
+
+                    if (isBase64Text) {
+                        String decryptedText = rsaModel.decrypt(content);
+                        try (FileWriter fw = new FileWriter(dest)) {
+                            fw.write(decryptedText);
+                        }
+                    } else {
+                        rsaModel.decryptFile(src, dest);
+                    }
+
+                    lastOutputFilePath = dest;
+                    asymmetricView.setAsymmetricOutputText("Đã giải mã thành công ra file:\n" + dest);
+                }
+            } catch (java.security.InvalidKeyException ex) {
+                asymmetricView.showMessage("Lỗi: Khóa không hợp lệ!\nVui lòng đảm bảo bạn đang sử dụng đúng Private Key để giải mã.");
+            } catch (Exception ex) {
+                asymmetricView.showMessage("Lỗi xử lý: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -135,6 +198,7 @@ public class AsymmetricController {
             }
         }
     }
+
     public class LoadPublicKey implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -157,10 +221,10 @@ public class AsymmetricController {
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-
             }
         }
     }
+
     public class LoadPrivateKey implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -183,10 +247,10 @@ public class AsymmetricController {
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-
             }
         }
     }
+
     public class SavePrivateKey implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -211,6 +275,7 @@ public class AsymmetricController {
             }
         }
     }
+
     public class SavePublicKey implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -263,6 +328,35 @@ public class AsymmetricController {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(selection, null);
             asymmetricView.showMessage("Đã sao chép khoá thành công!");
+        }
+    }
+
+    public class SaveFileOut implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (asymmetricView.getAsymmetricSelectedTab() == 0) {
+                if (lastOutputText.isEmpty()) {
+                    asymmetricView.showMessage("Không có dữ liệu để lưu!");
+                    return;
+                }
+                JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(asymmetricView);
+                FileDialog fd = new FileDialog(frame, "Lưu file", FileDialog.SAVE);
+                fd.setVisible(true);
+                if (fd.getFile() != null) {
+                    try (FileWriter fw = new FileWriter(fd.getDirectory() + fd.getFile())) {
+                        fw.write(lastOutputText);
+                        asymmetricView.showMessage("Lưu file thành công!");
+                    } catch (Exception ex) {
+                        asymmetricView.showMessage("Lỗi lưu file!");
+                    }
+                }
+            } else {
+                if (lastOutputFilePath.isEmpty()) {
+                    asymmetricView.showMessage("Chưa có file nào được xử lý!");
+                } else {
+                    asymmetricView.showMessage("File đã được lưu tại vị trí:\n" + lastOutputFilePath);
+                }
+            }
         }
     }
 }

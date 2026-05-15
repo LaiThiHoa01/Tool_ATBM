@@ -11,7 +11,7 @@ public class AsymmetricView extends JPanel {
     private JTextArea textInputFileAsymmetric, textOutputAsymmetric, textInputAsymmetricText;
     private JButton btnCreateKeyPair, btnInputPubKey, btnOutputPubKey, btnInputPrivKey, btnOutputPrivKey;
     private JButton btnFileInputAsymmetric, btnEncryptAsymmetric, btnDecryptAsymmetric;
-    private JButton  btnCopyPubKey, btnCopyPrivKey;
+    private JButton btnCopyPubKey, btnCopyPrivKey, btnSaveFileOut;
     private JTabbedPane tabFileOrText;
     private String selectedFilePath = "";
     private JScrollPane scrollOutput;
@@ -30,7 +30,7 @@ public class AsymmetricView extends JPanel {
 
         cbMethodsAsymmetric = new JComboBox<>(new String[]{"RSA"});
         cbModes = new JComboBox<>(new String[]{"ECB"});
-        cbPadding = new JComboBox<>(new String[]{"PKCS1Padding", "OAEPWithSHA-1AndMGF1Padding", "OAEPWithSHA-256AndMGF1Padding", "NoPadding"});
+        cbPadding = new JComboBox<>(new String[]{"PKCS1Padding", "OAEPWithSHA-1AndMGF1Padding", "OAEPWithSHA-256AndMGF1Padding"});
         cbLengthKey = new JComboBox<>(new String[]{"1024", "2048", "3072", "4096"});
 
         btnCreateKeyPair = new JButton("Tạo cặp khoá");
@@ -45,7 +45,7 @@ public class AsymmetricView extends JPanel {
         btnCopyPubKey = new JButton("Sao chép");
         btnInputPubKey = new JButton("Tải");
         btnOutputPubKey = new JButton("Lưu");
-         styleButton(btnCopyPubKey);
+        styleButton(btnCopyPubKey);
         styleButton(btnInputPubKey);
         styleButton(btnOutputPubKey);
 
@@ -136,6 +136,13 @@ public class AsymmetricView extends JPanel {
         scrollOutput = new JScrollPane(textOutputAsymmetric);
         panelRightWrapper.add(scrollOutput, BorderLayout.CENTER);
 
+        btnSaveFileOut = new JButton("Lưu file");
+        styleButton(btnSaveFileOut);
+        JPanel pnOutputBtn = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pnOutputBtn.setOpaque(false);
+        pnOutputBtn.add(btnSaveFileOut);
+        panelRightWrapper.add(pnOutputBtn, BorderLayout.SOUTH);
+
         panelCenter.add(tabFileOrText);
         panelCenter.add(panelRightWrapper);
 
@@ -217,4 +224,5 @@ public class AsymmetricView extends JPanel {
     public void addBtnEncrypt(ActionListener l) { btnEncryptAsymmetric.addActionListener(l); }
     public void addBtnDecrypt(ActionListener l) { btnDecryptAsymmetric.addActionListener(l); }
     public void addBtnChooseFile(ActionListener l) { btnFileInputAsymmetric.addActionListener(l); }
+    public void addBtnSaveFileOut(ActionListener l) { btnSaveFileOut.addActionListener(l); }
 }
