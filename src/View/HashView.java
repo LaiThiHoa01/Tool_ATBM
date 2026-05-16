@@ -27,7 +27,7 @@ public class HashView extends JPanel {
         JPanel panelTop = new JPanel(new GridLayout(1, 2, 15, 5));
         panelTop.setOpaque(false);
         algorithm = new JLabel("Thuật toán:");
-        algorithms = new JComboBox<>(new String[]{"MD2","MD5", "SHA-1", "SHA-224","SHA-384","SHA-256", "SHA-512","SHA-512/224","SHA-512/256","BLAKE2B-512","RIPEMD160","Whirlpool"});
+        algorithms = new JComboBox<>(new String[]{"MD2","MD5", "SHA-1", "SHA-224","SHA-384","SHA-256", "SHA-512","SHA-512/224","SHA-512/256","SHAKE128","SHAKE256","BLAKE2B-512","RIPEMD160","Whirlpool"});
         panelTop.add(algorithm);
         panelTop.add(algorithms);
 

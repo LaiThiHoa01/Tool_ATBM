@@ -14,7 +14,6 @@ public class SymmetricView extends JPanel {
     private String selectedFilePath = "";
     private JScrollPane scrollOutput;
 
-    private final Color bgDark = Color.decode("#004643");
     private final Color btnColor = Color.decode("#f9bc60");
     private final Color btnTextColor = Color.decode("#001e1d");
 
@@ -29,7 +28,7 @@ public class SymmetricView extends JPanel {
 
         cbMethodsSymmetric = new JComboBox<>(new String[]{"AES","ARIA", "Blowfish", "Camellia", "CAST5","CAST6","DES", "DESede", "Serpent", "Twofish"});
         cbModes = new JComboBox<>(new String[]{"CBC", "ECB", "CFB", "OFB", "CTR"});
-        cbPadding1 = new JComboBox<>(new String[]{"PKCS5Padding","PKCS7Padding", "NoPadding"});
+        cbPadding1 = new JComboBox<>(new String[]{"PKCS5Padding","PKCS7Padding","ISO10126Padding","X923Padding", "NoPadding","ZeroBytePadding"});
         cbLenghtKey1 = new JComboBox<>();
         keySymmetric = new JTextField(30);
         cbMethodsSymmetric.addActionListener(e -> keySymmetric.setText(""));
